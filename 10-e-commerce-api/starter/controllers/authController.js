@@ -1,7 +1,7 @@
 const User = require('../models/User')
 const { StatusCodes } = require('http-status-codes')
 const CustomError = require('../errors')
-const { attachCookiesToResponse } = require('../utils/jwt')
+const { attachCookiesToResponse, createTokenUser} = require('../utils/index')
 
 const register = async (req, res) => {
     const { email, name, password } = req.body
@@ -16,7 +16,7 @@ const register = async (req, res) => {
     const role = isFirstAccount ? 'admin' : 'user'
 
     const user = await User.create({ email, name, password, role })
-    const tokenUser = { name: user.name, userId: user._id, role: user.role }
+    const tokenUser = createTokenUser(user)
     attachCookiesToResponse({ res, user: tokenUser })
     res.status(StatusCodes.CREATED).json({ user: tokenUser })
 }
@@ -37,7 +37,7 @@ const login = async (req, res) => {
         throw new CustomError.UnauthenticatedError('Credenciais inválidas')
     }
 
-    const tokenUser = { name: user.name, userId: user._id, role: user.role }
+    const tokenUser = createTokenUser(user)
     attachCookiesToResponse({ res, user: tokenUser })
     res.status(StatusCodes.CREATED).json({ user: tokenUser })
 
